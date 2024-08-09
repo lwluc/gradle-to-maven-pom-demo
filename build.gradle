@@ -48,17 +48,29 @@ publishing {
 
 void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
 	Node dependencies = new Node(null, 'dependencies')
-	project.configurations.getAsMap().each { it ->
-		{
-			it.value.allDependencies.each { dep ->
-				Node dependency = new Node(null, 'dependency')
-				dependency.appendNode('groupId', dep.group)
-				dependency.appendNode('artifactId', dep.name)
-				dependency.appendNode('version', dep.version)
-				dependency.appendNode('scope', 'compile') // TODO Set correct scope ...
-				dependencies.append(dependency)
-			}
+	var consideredScopes = ['implementation', 'testImplementation', 'testRuntimeOnly']
+	consideredScopes.each { scope ->
+		project.configurations.getByName(scope).allDependencies.each { dep ->
+			Node dependency = new Node(null, 'dependency')
+			dependency.appendNode('groupId', dep.group)
+			dependency.appendNode('artifactId', dep.name)
+			dependency.appendNode('version', dep.version)
+			dependency.appendNode('scope', mapGradleScopeToMap(scope))
+			dependencies.append(dependency)
 		}
 	}
 	pomXml.asNode().dependencies*.replaceNode(dependencies)
+}
+
+static String mapGradleScopeToMap(String gradleScope) {
+	switch (gradleScope) {
+		case 'compileOnly':
+			return 'provided'
+		case 'testImplementation':
+			return 'test'
+		case 'testRuntimeOnly':
+			return 'test'
+		default:
+			return 'compile'
+	}
 }

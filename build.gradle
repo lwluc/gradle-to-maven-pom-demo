@@ -46,12 +46,13 @@ publishing {
 }
 
 void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
-	Node dependencies = new Node(null, 'dependencies')
 	var consideredScopes = ['implementation', 'testImplementation', 'testRuntimeOnly']
-	consideredScopes.each { scope ->
-		project.configurations.getByName(scope).allDependencies.each { dep ->
-			dependencies.append(createDependencyNode(dep, scope))
-		}
+	// TODO: Filter dependencies from 'testImplementation' which are already under 'implementation'
+	var consideredDependencies = consideredScopes.collectEntries{ scope -> [scope, project.configurations.getByName(scope).allDependencies]  }
+
+	Node dependencies = new Node(null, 'dependencies')
+	consideredDependencies.each { scope, dependenciesOfScope ->
+		dependencies.append(createDependencyNode(dependenciesOfScope, scope))
 	}
 	pomXml.asNode().dependencies*.replaceNode(dependencies)
 }

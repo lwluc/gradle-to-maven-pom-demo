@@ -46,11 +46,16 @@ publishing {
 }
 
 void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
-	var consideredScopes = ['implementation', 'testImplementation', 'testRuntimeOnly']
-	// TODO: Filter dependencies from 'testImplementation' which are already under 'implementation'
-	var consideredDependencies = consideredScopes.collectEntries{ scope -> [scope, project.configurations.getByName(scope).allDependencies]  }
+	var implementationConfigurationName = 'implementation'
+	var consideredProdScopes = [implementationConfigurationName]
+	var consideredTestScopes = ['testImplementation', 'testRuntimeOnly']
+
+	var consideredProdDependencies = consideredProdScopes.collectEntries{ scope -> [implementationConfigurationName, project.configurations.getByName(scope).allDependencies]  }
+	var consideredTestDependencies = consideredTestScopes.collectEntries{ scope -> [scope, project.configurations.getByName(scope).allDependencies.findAll { deps -> consideredProdDependencies.findAll { !it.value.contains(deps)} }]  }
 
 	Node dependencies = new Node(null, 'dependencies')
+	var consideredDependencies = consideredProdDependencies
+	consideredDependencies.putAll(consideredTestDependencies)
 	consideredDependencies.each { scope, dependenciesOfScope ->
 		dependencies.append(createDependencyNode(dependenciesOfScope, scope))
 	}

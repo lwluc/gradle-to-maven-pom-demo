@@ -28,7 +28,6 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-
 publishing {
 	publications {
 		customLibrary(MavenPublication) {
@@ -51,18 +50,22 @@ void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
 	var consideredScopes = ['implementation', 'testImplementation', 'testRuntimeOnly']
 	consideredScopes.each { scope ->
 		project.configurations.getByName(scope).allDependencies.each { dep ->
-			Node dependency = new Node(null, 'dependency')
-			dependency.appendNode('groupId', dep.group)
-			dependency.appendNode('artifactId', dep.name)
-			dependency.appendNode('version', dep.version)
-			dependency.appendNode('scope', mapGradleScopeToMap(scope))
-			dependencies.append(dependency)
+			dependencies.append(createDependencyNode(dep, scope))
 		}
 	}
 	pomXml.asNode().dependencies*.replaceNode(dependencies)
 }
 
-static String mapGradleScopeToMap(String gradleScope) {
+static Node createDependencyNode(Object dep, String configuration) {
+	Node dependency = new Node(null, 'dependency')
+	dependency.appendNode('groupId', dep.group)
+	dependency.appendNode('artifactId', dep.name)
+	dependency.appendNode('version', dep.version)
+	dependency.appendNode('scope', mapGradleConfigurationToMavenScope(configuration))
+	return dependency
+}
+
+static String mapGradleConfigurationToMavenScope(String gradleScope) {
 	switch (gradleScope) {
 		case 'compileOnly':
 			return 'provided'

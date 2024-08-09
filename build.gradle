@@ -19,11 +19,46 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-web:3.3.2'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.3.2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher:3.3.2'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+
+publishing {
+	publications {
+		customLibrary(MavenPublication) {
+			from components.java
+
+			pom.withXml { pomXml -> replaceDependenciesWith('compile', pomXml) }
+		}
+	}
+
+	repositories {
+		maven {
+			name = 'sampleRepo'
+			url = layout.buildDirectory.dir("repo")
+		}
+	}
+}
+
+void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
+	Node dependencies = new Node(null, 'dependencies')
+	project.configurations.getAsMap().each { it ->
+		{
+			it.value.allDependencies.each { dep ->
+				Node dependency = new Node(null, 'dependency')
+				dependency.appendNode('groupId', dep.group)
+				dependency.appendNode('artifactId', dep.name)
+				dependency.appendNode('version', dep.version)
+				dependency.appendNode('scope', 'compile') // TODO Set correct scope ...
+				dependencies.append(dependency)
+			}
+		}
+	}
+	pomXml.asNode().dependencies*.replaceNode(dependencies)
 }

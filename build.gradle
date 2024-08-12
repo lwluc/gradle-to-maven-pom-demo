@@ -31,7 +31,6 @@ tasks.named('test') {
 }
 
 task generateModuleJson {
-	def buildDir = mkdir(project.layout.buildDirectory.dir("publications/customLibrary")).path
 	doLast {
 		def configurationNames = project.configurations.names
 		def dependencies = configurationNames.collect {
@@ -39,7 +38,13 @@ task generateModuleJson {
 		}.flatten().unique { a, b -> a <=> b }
 		def json = new JsonBuilder(dependencies: dependencies)
 
-		new File(buildDir + "/module.json").write(json.toPrettyString())
+		def outputDir = layout.buildDirectory.dir("publications/customLibrary").get().asFile
+		if (!outputDir.exists()) {
+			outputDir.mkdirs()
+		}
+
+
+		new File(outputDir, "module.json").write(json.toPrettyString())
 	}
 }
 

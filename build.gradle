@@ -53,7 +53,7 @@ publishing {
 		customLibrary(MavenPublication) {
 			from components.java
 
-			pom.withXml { pomXml -> replaceDependenciesWith('compile', pomXml) }
+			pom.withXml { pomXml -> replaceDependenciesWith(pomXml) }
 		}
 	}
 
@@ -65,7 +65,7 @@ publishing {
 	}
 }
 
-void replaceDependenciesWith(String configurationName, XmlProvider pomXml) {
+void replaceDependenciesWith(XmlProvider pomXml) {
 	var implementationConfigurationName = 'implementation'
 	var consideredProdScopes = [implementationConfigurationName]
 	var consideredTestScopes = ['testImplementation', 'testRuntimeOnly']

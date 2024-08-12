@@ -77,7 +77,7 @@ void replaceDependenciesWith(XmlProvider pomXml) {
 	var consideredDependencies = consideredProdDependencies
 	consideredDependencies.putAll(consideredTestDependencies)
 	consideredDependencies.each { scope, dependenciesOfScope ->
-		dependencies.append(createDependencyNode(dependenciesOfScope, scope))
+		dependenciesOfScope.each { dep -> dependencies.append(createDependencyNode(dep, scope)) }
 	}
 	pomXml.asNode().dependencies*.replaceNode(dependencies)
 }

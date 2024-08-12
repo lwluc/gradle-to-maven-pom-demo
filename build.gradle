@@ -1,3 +1,5 @@
+import groovy.json.JsonBuilder
+
 plugins {
 	id 'java'
 	id 'maven-publish'
@@ -26,6 +28,19 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+task generateModuleJson {
+	def buildDir = mkdir(project.layout.buildDirectory.dir("publications/customLibrary")).path
+	doLast {
+		def configurationNames = project.configurations.names
+		def dependencies = configurationNames.collect {
+			project.configurations.getByName(it).allDependencies.collect { it.name }
+		}.flatten().unique { a, b -> a <=> b }
+		def json = new JsonBuilder(dependencies: dependencies)
+
+		new File(buildDir + "/module.json").write(json.toPrettyString())
+	}
 }
 
 publishing {
